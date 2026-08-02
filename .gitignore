@@ -1,0 +1,34 @@
+## OS
+.DS_Store
+
+## Secrets / local env
+backend/.env
+backend/.env.*
+frontend/.env.local
+frontend/.env.*.local
+
+## Python backend
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/htmlcov/
+backend/build/
+backend/dist/
+
+## Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.turbo/
+frontend/.cache/
+frontend/coverage/
+frontend/*.tsbuildinfo
+
+## Optional runtime / logs
+*.log
+git init
+git branch -M main
