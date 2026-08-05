@@ -20,3 +20,9 @@ class LeaveStatus(str, enum.Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+
+
+class ReturnCondition(str, enum.Enum):
+    DAMAGED = "damaged"
+    APPROVED = "approved"
+    CLEAN = "clean"

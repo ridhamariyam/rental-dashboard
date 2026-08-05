@@ -3,7 +3,7 @@ import random
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
-from app.core.enums import BookingStatus, UserRole
+from app.core.enums import BookingStatus, ReturnCondition, UserRole
 from app.models.booking import Booking
 from app.models.user import User
 from app.repositories.booking_repository import BookingRepository
@@ -23,6 +23,10 @@ class BookingService:
         data = jsonable_encoder(booking)
         if data.get("user"):
             data["user"].pop("password", None)
+        if data.get("collected_by"):
+            data["collected_by"].pop("password", None)
+        if data.get("created_by"):
+            data["created_by"].pop("password", None)
         return data
 
     @staticmethod
@@ -61,7 +65,8 @@ class BookingService:
             total_days=total_days,
             rent_amount=500,
             security_deposit=2000,
-            total_amount=(500 * total_days) + 2000
+            total_amount=(500 * total_days) + 2000,
+            created_by_id=current_user.id,
         )
 
         created_booking = BookingRepository.create(db, booking)
@@ -103,6 +108,7 @@ class BookingService:
             security_deposit=security_deposit,
             total_amount=variation.rent_price * total_days,
             status=status,
+            created_by_id=current_user.id,
         )
 
         variation.quantity -= 1
@@ -215,6 +221,36 @@ class BookingService:
 
         if data.status is not None:
             booking.status = data.status
+
+        BookingRepository.update(db, booking)
+        return BookingService._serialize_booking(BookingRepository.get_by_id(db, booking_id))
+
+    @staticmethod
+    def return_booking(db, booking_id, data, current_user: User):
+        booking = BookingRepository.get_by_id(db, booking_id)
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        BookingService._ensure_booking_access(current_user, booking)
+
+        if booking.status == BookingStatus.RETURNED:
+            raise HTTPException(status_code=400, detail="Booking has already been returned")
+        if booking.status not in (BookingStatus.CONFIRMED, BookingStatus.PICKED):
+            raise HTTPException(status_code=400, detail="Booking must be picked up before it can be returned")
+
+        try:
+            return_condition = ReturnCondition(data.return_condition)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid return condition")
+
+        current_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
+        if current_role not in (UserRole.STAFF.value, UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value):
+            raise HTTPException(status_code=403, detail="Only staff or admin can record a product return")
+
+        booking.return_condition = return_condition
+        booking.damage_notes = data.damage_notes
+        booking.return_image = data.return_image
+        booking.collected_by_id = current_user.id
+        booking.status = BookingStatus.RETURNED
 
         BookingRepository.update(db, booking)
         return BookingService._serialize_booking(BookingRepository.get_by_id(db, booking_id))

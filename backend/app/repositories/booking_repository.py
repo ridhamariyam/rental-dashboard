@@ -10,6 +10,8 @@ def _booking_options():
         selectinload(Booking.shop),
         selectinload(Booking.product).selectinload(Product.category),
         selectinload(Booking.variation),
+        selectinload(Booking.collected_by),
+        selectinload(Booking.created_by),
     )
 
 

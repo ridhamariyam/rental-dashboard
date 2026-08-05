@@ -12,6 +12,7 @@ export default function Page(): React.JSX.Element {
       columns={[
         { key: 'booking_number', label: 'Booking No.' },
         { key: 'user.first_name', label: 'Customer First Name' },
+        { key: 'created_by.first_name', label: 'Booked By' },
         { key: 'security_deposit', label: 'Security Deposit' },
         { key: 'product.name', label: 'Product' },
         { key: 'variation.color', label: 'Color' },
@@ -34,6 +35,7 @@ export default function Page(): React.JSX.Element {
         { key: 'user.first_name', label: 'Customer First Name', readOnly: true },
         { key: 'user.last_name', label: 'Customer Last Name', readOnly: true },
         { key: 'shop.name', label: 'Shop', readOnly: true },
+        { key: 'created_by.first_name', label: 'Booked By', readOnly: true },
         {
           key: 'variation_id',
           label: 'Variation',

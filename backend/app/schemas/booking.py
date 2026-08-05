@@ -35,3 +35,9 @@ class BookingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BookingReturn(BaseModel):
+    return_condition: str
+    damage_notes: Optional[str] = None
+    return_image: Optional[str] = None

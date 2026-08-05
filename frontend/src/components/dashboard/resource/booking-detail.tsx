@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -11,12 +12,22 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ArrowLeftIcon } from '@phosphor-icons/react/dist/ssr/ArrowLeft';
 
 import { API_BASE_URL, api } from '@/lib/api';
 import { paths } from '@/paths';
+
+const RETURNABLE_STATUSES = new Set(['confirmed', 'picked']);
+
+const CONDITION_CHIP_COLOR: Record<string, 'error' | 'success' | 'info'> = {
+  damaged: 'error',
+  approved: 'success',
+  clean: 'info',
+};
 
 interface BookingDetailData {
   id: string;
@@ -28,6 +39,9 @@ interface BookingDetailData {
   security_deposit: number;
   total_amount: number;
   status: string;
+  return_condition?: string | null;
+  damage_notes?: string | null;
+  return_image?: string | null;
   user?: {
     first_name?: string;
     last_name?: string;
@@ -35,6 +49,16 @@ interface BookingDetailData {
     phone?: string;
     address?: string | null;
   };
+  collected_by?: {
+    first_name?: string;
+    last_name?: string;
+    role?: string;
+  } | null;
+  created_by?: {
+    first_name?: string;
+    last_name?: string;
+    role?: string;
+  } | null;
   shop?: {
     name?: string;
     email?: string;
@@ -90,36 +114,58 @@ export function BookingDetail({ bookingId }: BookingDetailProps): React.JSX.Elem
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    let isMounted = true;
+  const [returnCondition, setReturnCondition] = React.useState('approved');
+  const [damageNotes, setDamageNotes] = React.useState('');
+  const [returnImage, setReturnImage] = React.useState<File | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
-    async function loadBooking(): Promise<void> {
-      setLoading(true);
-      setError(null);
+  const loadBooking = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const data = await api.get<BookingDetailData>(`/bookings/${bookingId}`);
-
-        if (isMounted) {
-          setBooking(data);
-        }
-      } catch (error_) {
-        if (isMounted) {
-          setError(error_ instanceof Error ? error_.message : 'Unable to load booking details');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+    try {
+      const data = await api.get<BookingDetailData>(`/bookings/${bookingId}`);
+      setBooking(data);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : 'Unable to load booking details');
+    } finally {
+      setLoading(false);
     }
-
-    void loadBooking();
-
-    return () => {
-      isMounted = false;
-    };
   }, [bookingId]);
+
+  React.useEffect(() => {
+    void loadBooking();
+  }, [loadBooking]);
+
+  const canReturn = Boolean(booking && RETURNABLE_STATUSES.has(booking.status));
+
+  async function handleReturnSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('return_condition', returnCondition);
+      if (damageNotes.trim()) {
+        formData.append('damage_notes', damageNotes.trim());
+      }
+      if (returnImage) {
+        formData.append('image', returnImage);
+      }
+
+      const updated = await api.post<BookingDetailData>(`/bookings/${bookingId}/return`, formData);
+      setBooking(updated);
+      setDamageNotes('');
+      setReturnImage(null);
+    } catch (error_) {
+      setSubmitError(error_ instanceof Error ? error_.message : 'Unable to record the return');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <Stack spacing={3}>
@@ -151,6 +197,14 @@ export function BookingDetail({ bookingId }: BookingDetailProps): React.JSX.Elem
                   <DetailRow label="Rent Amount" value={`₹${booking.rent_amount}`} />
                   <DetailRow label="Security Deposit" value={`₹${booking.security_deposit}`} />
                   <DetailRow label="Total Amount" value={`₹${booking.total_amount}`} />
+                  <DetailRow
+                    label="Booked By"
+                    value={
+                      booking.created_by
+                        ? `${booking.created_by.first_name ?? ''} ${booking.created_by.last_name ?? ''}`.trim() || '-'
+                        : '-'
+                    }
+                  />
                 </Stack>
               </CardContent>
             </Card>
@@ -264,6 +318,126 @@ export function BookingDetail({ bookingId }: BookingDetailProps): React.JSX.Elem
               </CardContent>
             </Card>
           </Grid>
+
+          {booking.status === 'returned' ? (
+            <Grid size={{ xs: 12 }}>
+              <Card>
+                <CardHeader title="Return / Collection" />
+                <Divider />
+                <CardContent>
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Stack spacing={1.5}>
+                        <DetailRow
+                          label="Condition"
+                          value={
+                            booking.return_condition ? (
+                              <Chip
+                                color={CONDITION_CHIP_COLOR[booking.return_condition] ?? 'default'}
+                                label={booking.return_condition}
+                                size="small"
+                              />
+                            ) : (
+                              '-'
+                            )
+                          }
+                        />
+                        <DetailRow label="Damage Notes" value={booking.damage_notes} />
+                        <DetailRow
+                          label="Collected By"
+                          value={
+                            booking.collected_by
+                              ? `${booking.collected_by.first_name ?? ''} ${booking.collected_by.last_name ?? ''}`.trim()
+                              : '-'
+                          }
+                        />
+                      </Stack>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Stack spacing={1}>
+                        <Typography color="text.secondary" variant="body2">
+                          Return Image
+                        </Typography>
+                        {booking.return_image ? (
+                          <Box
+                            alt="Return condition"
+                            component="img"
+                            src={resolveImageUrl(booking.return_image)}
+                            sx={{ borderRadius: 1, height: 120, objectFit: 'cover', width: 120 }}
+                          />
+                        ) : (
+                          <Typography color="text.secondary" variant="caption">
+                            No image uploaded
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ) : null}
+
+          {canReturn ? (
+            <Grid size={{ xs: 12 }}>
+              <Card component="form" onSubmit={(event) => void handleReturnSubmit(event)}>
+                <CardHeader title="Mark Product Returned" />
+                <Divider />
+                <CardContent>
+                  <Stack spacing={2}>
+                    {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Condition"
+                          onChange={(event) => setReturnCondition(event.target.value)}
+                          select
+                          value={returnCondition}
+                        >
+                          <MenuItem value="approved">Approved</MenuItem>
+                          <MenuItem value="clean">Clean</MenuItem>
+                          <MenuItem value="damaged">Damaged</MenuItem>
+                        </TextField>
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField
+                          fullWidth
+                          label="Damage Notes"
+                          minRows={2}
+                          multiline
+                          onChange={(event) => setDamageNotes(event.target.value)}
+                          placeholder="Describe the damage (if any)"
+                          value={damageNotes}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                          <Button component="label" variant="outlined">
+                            {returnImage ? 'Change Image' : 'Upload Image'}
+                            <input
+                              accept="image/*"
+                              hidden
+                              onChange={(event) => setReturnImage(event.target.files?.[0] ?? null)}
+                              type="file"
+                            />
+                          </Button>
+                          <Typography color="text.secondary" variant="caption">
+                            {returnImage ? returnImage.name : 'No image selected'}
+                          </Typography>
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                    <Box>
+                      <Button disabled={submitting} type="submit" variant="contained">
+                        {submitting ? 'Saving...' : 'Mark as Returned'}
+                      </Button>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ) : null}
         </Grid>
       ) : (
         <Typography color="text.secondary">Booking not found</Typography>

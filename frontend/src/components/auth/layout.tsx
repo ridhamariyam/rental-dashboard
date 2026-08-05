@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { paths } from '@/paths';
+import { config } from '@/config';
 import { DynamicLogo } from '@/components/core/logo';
 
 export interface LayoutProps {
@@ -42,25 +43,20 @@ export function Layout({ children }: LayoutProps): React.JSX.Element {
         }}
       >
         <Stack spacing={3}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <DynamicLogo colorDark="light" colorLight="light" emblem height={64} width={64} />
+          </Box>
           <Stack spacing={1}>
             <Typography color="inherit" sx={{ fontSize: '24px', lineHeight: '32px', textAlign: 'center' }} variant="h1">
               Welcome to{' '}
               <Box component="span" sx={{ color: '#15b79e' }}>
-                Devias Kit
+                {config.site.name}
               </Box>
             </Typography>
             <Typography align="center" variant="subtitle1">
-              A professional template that comes with ready-to-use MUI components.
+              Manage shops, product listings, and bookings all in one place.
             </Typography>
           </Stack>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Box
-              component="img"
-              alt="Widgets"
-              src="/assets/auth-widgets.png"
-              sx={{ height: 'auto', width: '100%', maxWidth: '600px' }}
-            />
-          </Box>
         </Stack>
       </Box>
     </Box>

@@ -1,11 +1,11 @@
 import uuid
 from datetime import date
-from sqlalchemy import (String,Date,Float,ForeignKey,Enum,)
+from sqlalchemy import (String,Text,Date,Float,ForeignKey,Enum,)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from app.models.base import TimestampMixin
-from app.core.enums import BookingStatus
+from app.core.enums import BookingStatus, ReturnCondition
 class Booking(Base, TimestampMixin):
     __tablename__ = "bookings"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
@@ -21,8 +21,15 @@ class Booking(Base, TimestampMixin):
     security_deposit: Mapped[float] = mapped_column(Float)
     total_amount: Mapped[float] = mapped_column(Float)
     status: Mapped[BookingStatus] = mapped_column(Enum(BookingStatus,values_callable=lambda x: [e.value for e in x],name="booking_status",),default=BookingStatus.PENDING)
-    
-    user = relationship("User")
+    return_condition: Mapped[ReturnCondition | None] = mapped_column(Enum(ReturnCondition,values_callable=lambda x: [e.value for e in x],name="return_condition",),nullable=True)
+    damage_notes: Mapped[str | None] = mapped_column(Text,nullable=True)
+    return_image: Mapped[str | None] = mapped_column(String(500),nullable=True)
+    collected_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True),ForeignKey("users.id"),nullable=True)
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True),ForeignKey("users.id"),nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id])
     shop = relationship("Shop")
     product = relationship("Product")
     variation = relationship("ProductVariation")
+    collected_by = relationship("User", foreign_keys=[collected_by_id])
+    created_by = relationship("User", foreign_keys=[created_by_id])
