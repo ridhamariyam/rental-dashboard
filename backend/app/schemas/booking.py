@@ -12,7 +12,20 @@ class BookingCreate(BaseModel):
 
 
 class BookingUpdate(BaseModel):
-    status: str
+    product_id: Optional[str] = None
+    variation_id: Optional[str] = None
+    from_date: Optional[date] = None
+    to_date: Optional[date] = None
+    security_deposit: Optional[float] = None
+    status: Optional[str] = None
+
+
+class BookingAssignCreate(BaseModel):
+    user_id: str
+    from_date: date
+    to_date: date
+    security_deposit: Optional[float] = None
+    status: Optional[str] = None
 
 
 class BookingResponse(BaseModel):

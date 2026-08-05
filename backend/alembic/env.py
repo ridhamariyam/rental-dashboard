@@ -19,9 +19,12 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from app.database import Base
+from app.models.attendance import Attendance
 from app.models.booking import Booking
 from app.models.category import Category
 from app.models.product import Product
+from app.models.product_variation import ProductVariation
+from app.models.salary import Salary
 from app.models.shop import Shop
 from app.models.staff import StaffLeave
 from app.models.user import User

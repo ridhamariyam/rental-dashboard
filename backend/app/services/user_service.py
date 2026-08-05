@@ -71,6 +71,7 @@ class UserService:
             username=user.username,
             email=user.email,
             phone=user.phone,
+            address=user.address,
             password=hash_password(user.password),
             role=requested_role,
             shop_id=shop_id
@@ -110,8 +111,12 @@ class UserService:
         UserService._ensure_same_shop(current_user, user.shop_id)
 
         requested_role = UserRole(data.role)
-        if not UserService._is_super_admin(current_user) and requested_role not in {UserRole.STAFF, UserRole.CUSTOMER}:
-            raise HTTPException(status_code=403, detail="Shop admin can update only staff or customers")
+        is_self_edit = str(current_user.id) == str(user_id)
+        role_unchanged = requested_role == user.role
+
+        if not UserService._is_super_admin(current_user) and not (is_self_edit and role_unchanged):
+            if requested_role not in {UserRole.STAFF, UserRole.CUSTOMER}:
+                raise HTTPException(status_code=403, detail="Shop admin can update only staff or customers")
 
         existing_email = UserRepository.get_by_email(db, data.email)
         if existing_email and str(existing_email.id) != user_id:
@@ -126,6 +131,7 @@ class UserService:
         user.username = data.username
         user.email = data.email
         user.phone = data.phone
+        user.address = data.address
         user.role = requested_role
         if UserService._is_super_admin(current_user):
             user.shop_id = data.shop_id

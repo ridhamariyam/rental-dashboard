@@ -10,10 +10,12 @@ export default function Page(): React.JSX.Element {
   return (
     <ResourceManager
       columns={[
+        { key: 'username', label: 'Username', displayAs: 'link' },
         { key: 'first_name', label: 'First Name' },
         { key: 'last_name', label: 'Last Name' },
         { key: 'email', label: 'Email' },
         { key: 'phone', label: 'Phone' },
+        { key: 'address', label: 'Address' },
         { key: 'role', label: 'Role' },
         { key: 'shop.name', label: 'Shop' },
       ]}
@@ -24,6 +26,7 @@ export default function Page(): React.JSX.Element {
         username: '',
         email: '',
         phone: '',
+        address: '',
         password: '',
         role: 'customer',
         shop_id: '',
@@ -35,6 +38,7 @@ export default function Page(): React.JSX.Element {
         { key: 'username', label: 'Username', required: true },
         { key: 'email', label: 'Email', required: true, type: 'email' },
         { key: 'phone', label: 'Phone', required: true },
+        { key: 'address', label: 'Address', type: 'textarea' },
         { key: 'password', label: 'Password', required: true, type: 'password' },
         {
           key: 'shop_id',
@@ -56,6 +60,7 @@ export default function Page(): React.JSX.Element {
           ],
         },
       ]}
+      rowLinkTemplate="/dashboard/customers/{id}"
       title="Customers"
     />
   );

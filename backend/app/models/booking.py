@@ -13,6 +13,7 @@ class Booking(Base, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True),ForeignKey("users.id"))
     shop_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True),ForeignKey("shops.id"))
     product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True),ForeignKey("products.id"))
+    variation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True),ForeignKey("product_variations.id"),nullable=True)
     from_date: Mapped[date] = mapped_column(Date)
     to_date: Mapped[date] = mapped_column(Date)
     total_days: Mapped[int]
@@ -24,3 +25,4 @@ class Booking(Base, TimestampMixin):
     user = relationship("User")
     shop = relationship("Shop")
     product = relationship("Product")
+    variation = relationship("ProductVariation")

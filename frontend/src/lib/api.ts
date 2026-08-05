@@ -71,11 +71,12 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function request<T>(path: string, options: RequestInit = {}, hasRetried = false): Promise<T> {
   const token = getAccessToken();
+  const isFormData = options.body instanceof FormData;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
@@ -110,9 +111,9 @@ async function request<T>(path: string, options: RequestInit = {}, hasRetried = 
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body: Record<string, unknown>) =>
-    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(path: string, body: Record<string, unknown>) =>
-    request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  post: <T>(path: string, body: Record<string, unknown> | FormData) =>
+    request<T>(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
+  put: <T>(path: string, body: Record<string, unknown> | FormData) =>
+    request<T>(path, { method: 'PUT', body: body instanceof FormData ? body : JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };

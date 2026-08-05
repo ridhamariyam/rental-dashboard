@@ -1,47 +1,47 @@
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-const user = {
-  name: 'Sofia Rivers',
-  avatar: '/assets/avatar.png',
-  jobTitle: 'Senior Developer',
-  country: 'USA',
-  city: 'Los Angeles',
-  timezone: 'GTM-7',
-} as const;
+import type { CurrentUserProfile } from '@/components/dashboard/account/types';
 
-export function AccountInfo(): React.JSX.Element {
+export interface AccountInfoProps {
+  user: CurrentUserProfile;
+}
+
+export function AccountInfo({ user }: AccountInfoProps): React.JSX.Element {
   return (
     <Card>
       <CardContent>
         <Stack spacing={2} sx={{ alignItems: 'center' }}>
-          <div>
-            <Avatar src={user.avatar} sx={{ height: '80px', width: '80px' }} />
-          </div>
+          <Avatar sx={{ height: '80px', width: '80px' }}>
+            {user.first_name.charAt(0).toUpperCase()}
+            {user.last_name.charAt(0).toUpperCase()}
+          </Avatar>
           <Stack spacing={1} sx={{ textAlign: 'center' }}>
-            <Typography variant="h5">{user.name}</Typography>
-            <Typography color="text.secondary" variant="body2">
-              {user.city} {user.country}
+            <Typography variant="h5">
+              {user.first_name} {user.last_name}
             </Typography>
             <Typography color="text.secondary" variant="body2">
-              {user.timezone}
+              @{user.username}
             </Typography>
+            <Chip label={user.role} size="small" sx={{ alignSelf: 'center' }} />
           </Stack>
         </Stack>
       </CardContent>
       <Divider />
-      <CardActions>
-        <Button fullWidth variant="text">
-          Upload picture
-        </Button>
-      </CardActions>
+      <CardContent>
+        <Stack spacing={1.5}>
+          <Typography variant="body2">Email: {user.email}</Typography>
+          <Typography variant="body2">Mobile Number: {user.phone}</Typography>
+          <Typography variant="body2">Address: {user.address ?? '-'}</Typography>
+          <Typography variant="body2">Shop: {user.shop?.name ?? '-'}</Typography>
+        </Stack>
+      </CardContent>
     </Card>
   );
 }

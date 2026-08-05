@@ -20,6 +20,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     phone: str
+    address: Optional[str] = None
     password: str
     role: str
     shop_id: Optional[str] = None
@@ -31,6 +32,7 @@ class UserUpdate(BaseModel):
     username: str
     email: EmailStr
     phone: str
+    address: Optional[str] = None
     role: str
     shop_id: Optional[str] = None
     password: Optional[str] = None
@@ -43,6 +45,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     phone: str
+    address: Optional[str] = None
     role: str
     shop_id: Optional[UUID] = None
     shop: Optional[UserShopResponse] = None

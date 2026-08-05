@@ -1,6 +1,16 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.booking import Booking
+from app.models.product import Product
+
+
+def _booking_options():
+    return (
+        selectinload(Booking.user),
+        selectinload(Booking.shop),
+        selectinload(Booking.product).selectinload(Product.category),
+        selectinload(Booking.variation),
+    )
 
 
 class BookingRepository:
@@ -14,17 +24,25 @@ class BookingRepository:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Booking).all()
+        return db.query(Booking).options(*_booking_options()).all()
 
     @staticmethod
     def get_by_shop(db: Session, shop_id):
-        return db.query(Booking).filter(Booking.shop_id == shop_id).all()
+        return db.query(Booking).options(*_booking_options()).filter(Booking.shop_id == shop_id).all()
+
+    @staticmethod
+    def get_by_user(db: Session, user_id):
+        return (
+            db.query(Booking)
+            .options(*_booking_options())
+            .filter(Booking.user_id == user_id)
+            .order_by(Booking.created_at.desc())
+            .all()
+        )
 
     @staticmethod
     def get_by_id(db: Session, booking_id):
-        return db.query(Booking).filter(
-            Booking.id == booking_id
-        ).first()
+        return db.query(Booking).options(*_booking_options()).filter(Booking.id == booking_id).first()
 
     @staticmethod
     def update(db: Session, booking):

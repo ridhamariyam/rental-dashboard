@@ -4,7 +4,6 @@ from app.core.enums import UserRole
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.product_repository import ProductRepository
-from app.utils.helpers import generate_sku, generate_barcode
 
 
 class ProductService:
@@ -44,13 +43,7 @@ class ProductService:
             category_id=data.category_id,
             name=data.name,
             description=data.description,
-            sku=generate_sku(),
-            barcode=generate_barcode(),
             image=data.image,
-            gallery=data.gallery,
-            rent_price=data.rent_price,
-            security_deposit=data.security_deposit,
-            quantity=data.quantity,
         )
 
         return ProductRepository.create(db, product)
@@ -87,10 +80,6 @@ class ProductService:
         product.name = data.name
         product.description = data.description
         product.image = data.image
-        product.gallery = data.gallery
-        product.rent_price = data.rent_price
-        product.security_deposit = data.security_deposit
-        product.quantity = data.quantity
         return ProductRepository.update(db, product)
 
     @staticmethod
@@ -105,19 +94,3 @@ class ProductService:
         ProductRepository.delete(db, product)
 
         return True
-    
-    @staticmethod
-    def get_product_by_barcode(db, barcode, current_user: User):
-        product = ProductRepository.get_by_barcode(
-            db,
-            barcode
-        )
-
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail="Product not found"
-            )
-
-        ProductService._ensure_product_access(current_user, product)
-        return product

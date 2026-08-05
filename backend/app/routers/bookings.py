@@ -30,6 +30,15 @@ def get_bookings(
     return BookingService.get_bookings(db, current_user)
 
 
+@router.get("/customer/{user_id}")
+def get_bookings_for_user(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return BookingService.get_bookings_for_user(db, user_id, current_user)
+
+
 @router.get("/{booking_id}")
 def get_booking(
     booking_id: str,

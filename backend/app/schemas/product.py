@@ -10,11 +10,6 @@ class ProductCreate(BaseModel):
     name: str
     description: Optional[str] = None
     image: Optional[str] = None
-    gallery: Optional[list] = None
-    rent_price: float
-    security_deposit: float
-    quantity: int
-    available_quantity: int
 
 
 class ProductUpdate(BaseModel):
@@ -24,17 +19,11 @@ class ProductUpdate(BaseModel):
     name: str
     description: Optional[str] = None
     image: Optional[str] = None
-    gallery: Optional[list] = None
-    rent_price: float
-    security_deposit: float
-    quantity: int
 
 
 class ProductResponse(BaseModel):
 
     id: str
-    sku: str
-    barcode: str
     name: str
 
     class Config:

@@ -11,10 +11,9 @@ export default function Page(): React.JSX.Element {
     <ResourceManager
       columns={[
         { key: 'name', label: 'Name' },
-        { key: 'rent_price', label: 'Rent Price' },
-        { key: 'security_deposit', label: 'Deposit' },
-        { key: 'quantity', label: 'Quantity' },
-        { key: 'sku', label: 'SKU' },
+        { key: 'image', label: 'Image', displayAs: 'image' },
+        { key: 'shop.name', label: 'Shop' },
+        { key: 'category.name', label: 'Category' },
       ]}
       defaultValues={{
         shop_id: '',
@@ -22,23 +21,28 @@ export default function Page(): React.JSX.Element {
         name: '',
         description: '',
         image: '',
-        gallery: [],
-        rent_price: 0,
-        security_deposit: 0,
-        quantity: 1,
-        available_quantity: 1,
       }}
       endpoint="/products"
       fields={[
-        { key: 'shop_id', label: 'Shop ID', required: true },
-        { key: 'category_id', label: 'Category ID', required: true },
+        {
+          key: 'shop_id',
+          label: 'Shop',
+          required: true,
+          optionsEndpoint: '/shops',
+          optionLabelKey: 'name',
+          optionValueKey: 'id',
+        },
+        {
+          key: 'category_id',
+          label: 'Category',
+          required: true,
+          optionsEndpoint: '/categories',
+          optionLabelKey: 'name',
+          optionValueKey: 'id',
+        },
         { key: 'name', label: 'Name', required: true },
         { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'image', label: 'Image URL' },
-        { key: 'rent_price', label: 'Rent Price', required: true, type: 'number' },
-        { key: 'security_deposit', label: 'Security Deposit', required: true, type: 'number' },
-        { key: 'quantity', label: 'Quantity', required: true, type: 'number' },
-        { key: 'available_quantity', label: 'Available Quantity', required: true, type: 'number', createOnly: true },
+        { key: 'image', label: 'Image', type: 'file', accept: 'image/*' },
       ]}
       title="Products"
     />
